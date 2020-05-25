@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\assignment4_raytracer\raytracer\build\CMakeFiles\df05a54c809e26066e887eae6f389cf2\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{0847CD88-4BF2-3316-BB68-A8138A36CE01}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

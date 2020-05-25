@@ -20,7 +20,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
-
+#include "gui.h"
 // Struct for resources and state
 struct Context {
     int width;
@@ -149,6 +149,9 @@ void showGui(Context &ctx)
     }
     // Add more settings and parameters here
     // ...
+    ImGui::Checkbox("Toggle Gamma",&toggle_gamma);
+    ImGui::Checkbox("Toggle Anti-Aliasing",&toggle_anti_aliasing);
+
 
     ImGui::Text("Progress");
     ImGui::ProgressBar(float(ctx.rtx.current_frame) / ctx.rtx.max_frames);
@@ -322,6 +325,8 @@ int main(void)
         ImGui_ImplGlfwGL3_NewFrame();
         display(ctx);
         ImGui::Render();
+        glUniform1i(glGetUniformLocation(ctx.program, "u_fix_gamma"), toggle_gamma);
+
         glfwSwapBuffers(ctx.window);
     }
 

@@ -1,0 +1,8 @@
+D:/assignment4_raytracer/raytracer/build/CMakeFiles/raytracer.dir
+D:/assignment4_raytracer/raytracer/build/CMakeFiles/INSTALL.dir
+D:/assignment4_raytracer/raytracer/build/CMakeFiles/ALL_BUILD.dir
+D:/assignment4_raytracer/raytracer/build/CMakeFiles/ZERO_CHECK.dir
+D:/assignment4_raytracer/raytracer/build/glfw/CMakeFiles/INSTALL.dir
+D:/assignment4_raytracer/raytracer/build/glfw/CMakeFiles/ALL_BUILD.dir
+D:/assignment4_raytracer/raytracer/build/glfw/src/CMakeFiles/glfw.dir
+D:/assignment4_raytracer/raytracer/build/glfw/src/CMakeFiles/INSTALL.dir

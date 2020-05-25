@@ -7,6 +7,8 @@
 
 #include "utils2.h"  // Used for OBJ-mesh loading
 #include <stdlib.h>  // Needed for drand48()
+#include <random>
+#include "gui.h"
 
 namespace rt {
 
@@ -63,6 +65,14 @@ bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
 // }
 //
 // See Chapter 7 in the "Ray Tracing in a Weekend" book
+glm::vec3 random_in_unit_sphere(){
+    glm::vec3 p;
+    do{
+        p = 2.0f*glm::vec3(rand(),rand(),rand()),glm::vec3(1,1,1);
+    }while((p[0]*p[0]+p[1]*p[1],p[2]*p[2]) >= 1,0);
+    return p;
+
+}
 glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
 {
     if (max_bounces < 0) return glm::vec3(0.0f);
@@ -75,14 +85,20 @@ glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
         }
 
         // Implement lighting for materials here
-        // ...
-        return glm::vec3(0.0f);
+        glm :: vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+        return 0.5f * color(rtx,Ray(rec.p,target-rec.p),max_bounces-1);
+
     }
 
     // If no hit, return sky color
     glm::vec3 unit_direction = glm::normalize(r.direction());
     float t = 0.5f * (unit_direction.y + 1.0f);
     return (1.0f - t) * rtx.ground_color + t * rtx.sky_color;
+}
+
+inline double random_double() {
+    // Returns a random real in [0,1).
+    return rand() / (RAND_MAX + 1.0);
 }
 
 // MODIFY THIS FUNCTION!
@@ -114,6 +130,7 @@ void setupScene(RTContext &rtx, const char *filename)
     //}
 }
 
+
 // MODIFY THIS FUNCTION!
 void updateLine(RTContext &rtx, int y)
 {
@@ -126,23 +143,49 @@ void updateLine(RTContext &rtx, int y)
     glm::vec3 origin(0.0f, 0.0f, 0.0f);
     glm::mat4 world_from_view = glm::inverse(rtx.view);
 
+    int samples_per_pixel = 50;
     // You can try to parallelise this loop by uncommenting this line:
-    //#pragma omp parallel for schedule(dynamic)
-    for (int x = 0; x < nx; ++x) {
-        float u = (float(x) + 0.5f) / float(nx);
-        float v = (float(y) + 0.5f) / float(ny);
-        Ray r(origin, lower_left_corner + u * horizontal + v * vertical);
-        r.A = glm::vec3(world_from_view * glm::vec4(r.A, 1.0f));
-        r.B = glm::vec3(world_from_view * glm::vec4(r.B, 0.0f));
+    #pragma omp parallel for schedule(dynamic)
+    if(toggle_anti_aliasing){
 
-        if (rtx.current_frame <= 0) {
-            // Here we make the first frame blend with the old image,
-            // to smoothen the transition when resetting the accumulation
-            glm::vec4 old = rtx.image[y * nx + x];
-            rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
+    std::cout << "Error: s is not set." << std::endl;
+
+        for (int x = 0; x < nx; ++x) {
+            for(int i =0; i < samples_per_pixel; i++){
+                float u = (float(x) + random_double()) / float(nx);
+                float v = (float(y) + random_double()) / float(ny);
+                Ray r(origin, lower_left_corner + u * horizontal + v * vertical);
+                r.A = glm::vec3(world_from_view * glm::vec4(r.A, 1.0f));
+                r.B = glm::vec3(world_from_view * glm::vec4(r.B, 0.0f));
+
+                if (rtx.current_frame <= 0) {
+                    // Here we make the first frame blend with the old image,
+                    // to smoothen the transition when resetting the accumulation
+                    glm::vec4 old = rtx.image[y * nx + x];
+                    rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
+                }
+                glm::vec3 c = color(rtx, r, rtx.max_bounces);
+                rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
+            }
         }
-        glm::vec3 c = color(rtx, r, rtx.max_bounces);
-        rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
+    }
+    else{
+        for (int x = 0; x < nx; ++x) {
+            float u = (float(x) + 0.5f) / float(nx);
+            float v = (float(y) + 0.5f) / float(ny);
+            Ray r(origin, lower_left_corner + u * horizontal + v * vertical);
+            r.A = glm::vec3(world_from_view * glm::vec4(r.A, 1.0f));
+            r.B = glm::vec3(world_from_view * glm::vec4(r.B, 0.0f));
+
+            if (rtx.current_frame <= 0) {
+                // Here we make the first frame blend with the old image,
+                // to smoothen the transition when resetting the accumulation
+                glm::vec4 old = rtx.image[y * nx + x];
+                rtx.image[y * nx + x] = glm::clamp(old / glm::max(1.0f, old.a), 0.0f, 1.0f);
+            }
+            glm::vec3 c = color(rtx, r, rtx.max_bounces);
+            rtx.image[y * nx + x] += glm::vec4(c, 1.0f);
+        }
     }
 }
 

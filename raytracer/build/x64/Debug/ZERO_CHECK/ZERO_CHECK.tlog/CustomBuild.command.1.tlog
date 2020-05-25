@@ -1,0 +1,10 @@
+^D:\ASSIGNMENT4_RAYTRACER\RAYTRACER\BUILD\CMAKEFILES\DF05A54C809E26066E887EAE6F389CF2\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SD:/assignment4_raytracer/raytracer -BD:/assignment4_raytracer/raytracer/build --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file D:/assignment4_raytracer/raytracer/build/raytracer.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

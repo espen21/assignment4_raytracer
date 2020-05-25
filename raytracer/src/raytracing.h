@@ -16,7 +16,7 @@ struct RTContext {
     int current_frame = 0;
     int current_line = 0;
     int max_frames = 1000;
-    int max_bounces = 1;
+    int max_bounces = 3;
     float epsilon = 2e-4f;
     glm::mat4 view = glm::mat4(1.0f);
     glm::vec3 ground_color = glm::vec3(1.0f, 1.0f, 1.0f);
