@@ -8,7 +8,7 @@
 #include "utils2.h"  // Used for OBJ-mesh loading
 #include <stdlib.h>  // Needed for drand48()
 #include <random>
-#include "gui.h"
+#include "material.h"
 
 namespace rt {
 
@@ -75,25 +75,49 @@ glm::vec3 random_in_unit_sphere(){
 }
 glm::vec3 color(RTContext &rtx, const Ray &r, int max_bounces)
 {
+    
     if (max_bounces < 0) return glm::vec3(0.0f);
 
     HitRecord rec;
-    if (hit_world(r, 0.0f, 9999.0f, rec)) {
+ 
+    if (hit_world(r, 0.001f, 9999.0f, rec)) {
         rec.normal = glm::normalize(rec.normal);  // Always normalise before use!
         if (rtx.show_normals) {
             return rec.normal * 0.5f + 0.5f;
         }
 
         // Implement lighting for materials here
-        glm :: vec3 target = rec.p + rec.normal + random_in_unit_sphere();
-        return 0.5f * color(rtx,Ray(rec.p,target-rec.p),max_bounces-1);
+        //glm :: vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+        //return 0.5f * color(rtx,Ray(rec.p,target-rec.p),max_bounces-1);
+        Ray scattered;
+        glm::vec3 attenuation = glm::vec3(0.0f,0.0f,0.0f);
+        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered)){
 
+            return attenuation * color(rtx, scattered, max_bounces-1);
+        }
+        else{
+            return glm::vec3(0.0f,0.0f,0.0f);
+
+        }
+       
+       /*
+        glm::vec3 reflected = glm::reflect(glm::normalize(r.direction()),rec.normal);
+        Ray scattered = Ray(rec.p,reflected + random_in_unit_sphere());
+        glm::vec3 attenuation = glm::vec3(0.0f,1.0f,0.0);
+        if (glm::dot(scattered.direction(),rec.normal) > 0){
+            return attenuation * color(rtx,scattered,max_bounces-1);
+        }
+        else{
+            return glm::vec3(0.0f,0.0f,0.0f);
+        }
+        */
     }
-
+    else{
     // If no hit, return sky color
     glm::vec3 unit_direction = glm::normalize(r.direction());
     float t = 0.5f * (unit_direction.y + 1.0f);
     return (1.0f - t) * rtx.ground_color + t * rtx.sky_color;
+    }
 }
 
 inline double random_double() {
@@ -104,30 +128,35 @@ inline double random_double() {
 // MODIFY THIS FUNCTION!
 void setupScene(RTContext &rtx, const char *filename)
 {
-    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f);
+    g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, new lambertian(glm::vec3(0.0f, 0.9f, 0.0f)));
     g_scene.spheres = {
-        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(1.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f),
+        //Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f),
+        Sphere(glm::vec3(1.1f, 0.0f, 0.0f), 0.5f,new lambertian(glm::vec3(0.7f, 0.3f, 0.3f))),
+        Sphere(glm::vec3(1.5f, 1.0f, 0.0f), 0.5f,new metal(glm::vec3(0.85f, 0.85f, 0.1f),rtx.fuzz)),
+        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f,new metal(glm::vec3(0.8f, 0.8f, 0.8f),rtx.fuzz)),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f,new dielectric(0.0f)),
     };
-    //g_scene.boxes = {
-    //    Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //    Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //    Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-    //};
-
-    //OBJMesh mesh;
-    //objMeshLoad(mesh, filename);
-    //g_scene.mesh.clear();
-    //for (int i = 0; i < mesh.indices.size(); i += 3) {
-    //    int i0 = mesh.indices[i + 0];
-    //    int i1 = mesh.indices[i + 1];
-    //    int i2 = mesh.indices[i + 2];
-    //    glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
-    //    glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
-    //    glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
-    //    g_scene.mesh.push_back(Triangle(v0, v1, v2));
-    //}
+    /*
+    g_scene.boxes = {
+        Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+        Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+        Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+    };
+    */
+    /*
+    OBJMesh mesh;
+    objMeshLoad(mesh, filename);
+    g_scene.mesh.clear();
+    for (int i = 0; i < mesh.indices.size(); i += 3) {
+        int i0 = mesh.indices[i + 0];
+        int i1 = mesh.indices[i + 1];
+        int i2 = mesh.indices[i + 2];
+        glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
+        glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
+        glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
+        g_scene.mesh.push_back(Triangle(v0, v1, v2,new dielectric(1.0f)));
+    */
+    
 }
 
 
@@ -143,12 +172,12 @@ void updateLine(RTContext &rtx, int y)
     glm::vec3 origin(0.0f, 0.0f, 0.0f);
     glm::mat4 world_from_view = glm::inverse(rtx.view);
 
-    int samples_per_pixel = 50;
+    int samples_per_pixel = 10;
     // You can try to parallelise this loop by uncommenting this line:
     #pragma omp parallel for schedule(dynamic)
-    if(toggle_anti_aliasing){
+    if(rtx.toggle_anti_aliasing){
 
-    std::cout << "Error: s is not set." << std::endl;
+        
 
         for (int x = 0; x < nx; ++x) {
             for(int i =0; i < samples_per_pixel; i++){

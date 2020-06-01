@@ -7,12 +7,14 @@ namespace rt {
 class Triangle: public Hitable {
 public:
     Triangle() {}
-    Triangle(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c) : v0(a), v1(b), v2(c)  {};
+    Triangle(const glm::vec3 &a, const glm::vec3 &b, const glm::vec3 &c,material *m_p) : v0(a), v1(b), v2(c) ,mat_ptr(m_p) {};
     virtual bool hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const;
 
     glm::vec3 v0;
     glm::vec3 v1;
     glm::vec3 v2;
+    material *mat_ptr;
+
 };
 
 // Ray-triangle test adapted from "Real-Time Collision Detection" book (pages 191--192)
@@ -32,6 +34,8 @@ bool Triangle::hit(const Ray &r, float t_min, float t_max, HitRecord &rec) const
                     rec.t = temp;
                     rec.p = r.point_at_parameter(rec.t);
                     rec.normal = n;
+                    rec.mat_ptr = mat_ptr;
+
                     return true;
                 }
             }

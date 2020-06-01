@@ -23,7 +23,10 @@ struct RTContext {
     glm::vec3 sky_color = glm::vec3(0.5f, 0.7f, 1.0f);
     bool show_normals = true;
     // Add more settings and parameters here
-    // ...
+    bool toggle_gamma = true;
+    bool toggle_anti_aliasing = true;
+    float fuzz = 0.0f;
+    float zoomfactor = 45.0f;
 };
 
 void setupScene(RTContext &rtx, const char *mesh_filename);

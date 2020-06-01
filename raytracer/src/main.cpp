@@ -20,7 +20,6 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
-#include "gui.h"
 // Struct for resources and state
 struct Context {
     int width;
@@ -149,9 +148,16 @@ void showGui(Context &ctx)
     }
     // Add more settings and parameters here
     // ...
-    ImGui::Checkbox("Toggle Gamma",&toggle_gamma);
-    ImGui::Checkbox("Toggle Anti-Aliasing",&toggle_anti_aliasing);
-
+     if (ImGui::Checkbox("Toggle Gamma",&ctx.rtx.toggle_gamma)) {
+        rt::resetAccumulation(ctx.rtx);
+    }
+    
+    if (ImGui::Checkbox("Toggle Anti-Aliasing",&ctx.rtx.toggle_anti_aliasing)) {
+        rt::resetAccumulation(ctx.rtx);
+    }
+    if (ImGui::SliderFloat("Fuzz", &ctx.rtx.fuzz, 0.0f, 1.0f)) {
+        rt::resetAccumulation(ctx.rtx);
+    }
 
     ImGui::Text("Progress");
     ImGui::ProgressBar(float(ctx.rtx.current_frame) / ctx.rtx.max_frames);
@@ -262,6 +268,26 @@ void cursorPosCallback(GLFWwindow* window, double x, double y)
     Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
     moveTrackball(ctx, x, y);
 }
+float y_off = 45.0f;
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+
+    y_off -= (float)yoffset;
+
+    if(y_off>160){
+        y_off = 85.0f;
+    }
+    else if (y_off<2)
+    {
+        y_off =2.0f;
+    }
+   // Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
+
+           // std::cout << y_off << std::endl;
+
+       // trackballMove(ctx->trackball, glm::vec2(xoffset, yoffset));
+
+}
 
 void resizeCallback(GLFWwindow* window, int width, int height)
 {
@@ -298,6 +324,8 @@ int main(void)
     glfwSetKeyCallback(ctx.window, keyCallback);
     glfwSetCharCallback(ctx.window, charCallback);
     glfwSetMouseButtonCallback(ctx.window, mouseButtonCallback);
+    glfwSetScrollCallback(ctx.window, scroll_callback);
+
     glfwSetCursorPosCallback(ctx.window, cursorPosCallback);
     glfwSetFramebufferSizeCallback(ctx.window, resizeCallback);
 
@@ -325,7 +353,7 @@ int main(void)
         ImGui_ImplGlfwGL3_NewFrame();
         display(ctx);
         ImGui::Render();
-        glUniform1i(glGetUniformLocation(ctx.program, "u_fix_gamma"), toggle_gamma);
+        glUniform1i(glGetUniformLocation(ctx.program, "u_fix_gamma"), ctx.rtx.toggle_gamma);
 
         glfwSwapBuffers(ctx.window);
     }

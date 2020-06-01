@@ -6,11 +6,14 @@
 #include <glm/gtx/component_wise.hpp>
 
 namespace rt {
+class material;
 
 struct HitRecord {
     float t;
     glm::vec3 p;
     glm::vec3 normal;
+    material *mat_ptr;
+
 };
 
 class Hitable {
