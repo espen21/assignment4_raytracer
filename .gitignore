@@ -1,0 +1,14 @@
+
+*.exe
+raytracer/build/.vs/raytracer/v16/.suo
+raytracer/build/.vs/raytracer/v16/.suo
+raytracer/build/.vs/raytracer/v16/.suo
+raytracer/build/.vs/raytracer/v16/Browse.VC.db
+raytracer/build/.vs/raytracer/v16/ipch/AutoPCH/c22a721726faabe9/UTILS2.ipch
+raytracer/build/.vs/raytracer/v16/ipch/AutoPCH/e7db9034052ed9e3/UTILS.ipch
+*.exe
+raytracer/build/raytracer.dir/Debug/raytracing.obj
+*.log
+*.ini
+*.db
+*.ipch
