@@ -12,6 +12,7 @@ public:
 
     glm::vec3 center;
     glm::vec3 radius;
+    
 };
 
 // Ray-box test adapted from branchless code at

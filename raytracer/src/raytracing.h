@@ -25,8 +25,9 @@ struct RTContext {
     // Add more settings and parameters here
     bool toggle_gamma = true;
     bool toggle_anti_aliasing = true;
-    float fuzz = 0.0f;
-    float zoomfactor = 45.0f;
+    float fuzz = 0.1;
+    float zoomfactor = 1.0f;
+    int samples_per_pixel = 10;
 };
 
 void setupScene(RTContext &rtx, const char *mesh_filename);

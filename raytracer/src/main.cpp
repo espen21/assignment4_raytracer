@@ -155,6 +155,9 @@ void showGui(Context &ctx)
     if (ImGui::Checkbox("Toggle Anti-Aliasing",&ctx.rtx.toggle_anti_aliasing)) {
         rt::resetAccumulation(ctx.rtx);
     }
+    if (ImGui::SliderInt("Samples per pixel", &ctx.rtx.samples_per_pixel, 5, 100)) {
+        rt::resetAccumulation(ctx.rtx);
+    }
     if (ImGui::SliderFloat("Fuzz", &ctx.rtx.fuzz, 0.0f, 1.0f)) {
         rt::resetAccumulation(ctx.rtx);
     }
@@ -268,25 +271,13 @@ void cursorPosCallback(GLFWwindow* window, double x, double y)
     Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
     moveTrackball(ctx, x, y);
 }
-float y_off = 45.0f;
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    float adj_yoff = float(yoffset)/10.0f;
+    Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
+    ctx->rtx.zoomfactor =  ctx->rtx.zoomfactor + adj_yoff; 
 
-    y_off -= (float)yoffset;
-
-    if(y_off>160){
-        y_off = 85.0f;
-    }
-    else if (y_off<2)
-    {
-        y_off =2.0f;
-    }
-   // Context *ctx = static_cast<Context *>(glfwGetWindowUserPointer(window));
-
-           // std::cout << y_off << std::endl;
-
-       // trackballMove(ctx->trackball, glm::vec2(xoffset, yoffset));
-
+    
 }
 
 void resizeCallback(GLFWwindow* window, int width, int height)

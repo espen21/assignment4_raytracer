@@ -46,11 +46,14 @@ bool hit_world(const Ray &r, float t_min, float t_max, HitRecord &rec)
             rec = temp_rec;
         }
     }
-    for (int i = 0; i < g_scene.mesh.size(); ++i) {
-        if (g_scene.mesh[i].hit(r, t_min, closest_so_far, temp_rec)) {
-            hit_anything = true;
-            closest_so_far = temp_rec.t;
-            rec = temp_rec;
+    if(g_scene.mesh_bbox.hit(r,t_min,closest_so_far,temp_rec)){
+
+        for (int i = 0; i < g_scene.mesh.size(); ++i) {
+            if (g_scene.mesh[i].hit(r, t_min, closest_so_far, temp_rec)) {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec;
+            }
         }
     }
     return hit_anything;
@@ -126,25 +129,32 @@ inline double random_double() {
 }
 
 // MODIFY THIS FUNCTION!
-void setupScene(RTContext &rtx, const char *filename)
+void setupScene(RTContext& rtx, const char* filename)
 {
     g_scene.ground = Sphere(glm::vec3(0.0f, -1000.5f, 0.0f), 1000.0f, new lambertian(glm::vec3(0.0f, 0.9f, 0.0f)));
     g_scene.spheres = {
         //Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f),
-        Sphere(glm::vec3(1.1f, 0.0f, 0.0f), 0.5f,new lambertian(glm::vec3(0.7f, 0.3f, 0.3f))),
-        Sphere(glm::vec3(1.5f, 1.0f, 0.0f), 0.5f,new metal(glm::vec3(0.85f, 0.85f, 0.1f),rtx.fuzz)),
-        Sphere(glm::vec3(0.0f, 0.0f, 0.0f), 0.5f,new metal(glm::vec3(0.8f, 0.8f, 0.8f),rtx.fuzz)),
-        Sphere(glm::vec3(-1.0f, 0.0f, 0.0f), 0.5f,new dielectric(0.0f)),
+        Sphere(glm::vec3(1.5f, 0.0f, 0.0f), 0.35f,new lambertian(glm::vec3(0.7f, 0.3f, 0.3f))),
+        Sphere(glm::vec3(1.5f, 1.0f, 0.0f), 0.35f,new metal(glm::vec3(0.85f, 0.85f, 0.1f),rtx.fuzz)),
+        Sphere(glm::vec3(-1.0f, 0.0f, 0.1f), 0.35f,new metal(glm::vec3(0.8f, 0.8f, 0.8f),rtx.fuzz)),
+       Sphere(glm::vec3(-2.0f, 0.0f, 0.0f), 0.35f,new dielectric(0.0f)),
+       Sphere(glm::vec3(2.5f, 0.0f, 0.0f), 0.35f,new dielectric(1.5f)),
+
     };
-    /*
+   /*
+    float fx = (0.91f-0.7f)/2;
+    float fy = (0.97-0.64)/2;
+    float fz = (0.5f-0.74)/2;
+    
     g_scene.boxes = {
-        Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-        Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
-        Box(glm::vec3(-1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+      //  Box(glm::vec3(0.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+    //Box(glm::vec3(1.0f, -0.25f, 0.0f), glm::vec3(0.25f)),
+    Box(glm::vec3(fx, fy, fz), glm::vec3(0.8f)),
     };
     */
-    /*
+    
     OBJMesh mesh;
+ 
     objMeshLoad(mesh, filename);
     g_scene.mesh.clear();
     for (int i = 0; i < mesh.indices.size(); i += 3) {
@@ -154,9 +164,34 @@ void setupScene(RTContext &rtx, const char *filename)
         glm::vec3 v0 = mesh.vertices[i0] + glm::vec3(0.0f, 0.135f, 0.0f);
         glm::vec3 v1 = mesh.vertices[i1] + glm::vec3(0.0f, 0.135f, 0.0f);
         glm::vec3 v2 = mesh.vertices[i2] + glm::vec3(0.0f, 0.135f, 0.0f);
-        g_scene.mesh.push_back(Triangle(v0, v1, v2,new dielectric(1.0f)));
-    */
+        g_scene.mesh.push_back(Triangle(v0, v1, v2, new lambertian(glm::vec3(0.7f, 0.0f, 0.7f))));
+
+    }
+         
+    float  min_x = mesh.vertices[0].x;
+    float  max_x =mesh.vertices[0].x;
+    float min_y =mesh.vertices[0].y;
+    float max_y = mesh.vertices[0].y;
+    float min_z =mesh.vertices[0].z;
+    float  max_z = mesh.vertices[0].z;
     
+
+    for(int i = 0; i < mesh.vertices.size(); i++){
+        if (mesh.vertices[i].x < min_x) min_x = mesh.vertices[i].x;
+        if (mesh.vertices[i].x > max_x) max_x = mesh.vertices[i].x;
+        if (mesh.vertices[i].y < min_y) min_y = mesh.vertices[i].y;
+        if (mesh.vertices[i].y > max_y) max_y = mesh.vertices[i].y;
+        if (mesh.vertices[i].z < min_z) min_z = mesh.vertices[i].z;
+        if (mesh.vertices[i].z > max_z) max_z = mesh.vertices[i].z;
+
+    }
+        float bbx = (max_x + min_x)/2;
+        float bby = (max_y + min_y)/2;
+        float bbz = (max_z + min_z)/2;
+        glm::vec3 size = glm::vec3(max_x-min_x, max_y-min_y, max_z-min_z);
+
+    g_scene.mesh_bbox = Box(glm::vec3(bbx, bby, bbz), size*0.52f);
+  
 }
 
 
@@ -170,9 +205,10 @@ void updateLine(RTContext &rtx, int y)
     glm::vec3 horizontal(2.0f * aspect, 0.0f, 0.0f);
     glm::vec3 vertical(0.0f, 2.0f, 0.0f);
     glm::vec3 origin(0.0f, 0.0f, 0.0f);
-    glm::mat4 world_from_view = glm::inverse(rtx.view);
 
-    int samples_per_pixel = 10;
+    glm::mat4 world_from_view = glm::inverse((rtx.view*rtx.zoomfactor));
+
+    int sp = rtx.samples_per_pixel;
     // You can try to parallelise this loop by uncommenting this line:
     #pragma omp parallel for schedule(dynamic)
     if(rtx.toggle_anti_aliasing){
@@ -180,7 +216,7 @@ void updateLine(RTContext &rtx, int y)
         
 
         for (int x = 0; x < nx; ++x) {
-            for(int i =0; i < samples_per_pixel; i++){
+            for(int i =0; i < sp; i++){
                 float u = (float(x) + random_double()) / float(nx);
                 float v = (float(y) + random_double()) / float(ny);
                 Ray r(origin, lower_left_corner + u * horizontal + v * vertical);
